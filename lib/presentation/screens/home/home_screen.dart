@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:test_app/presentation/providers/advertisement/advertisement_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
 
   static const name = 'home-screen';
   static const path = '/home';
 
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      context.read<AdvertisementProvider>().getAdvertisement(1);
+    });
+    super.initState();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +47,6 @@ class HomeScreen extends StatelessWidget {
 class _TypeAdvertisements extends StatelessWidget {
 
   const _TypeAdvertisements();
-
-  
 
   @override
   Widget build(BuildContext context) {
