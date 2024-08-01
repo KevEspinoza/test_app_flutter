@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:test_app/domain/entities/advertisements_entity.dart';
 import 'package:test_app/presentation/providers/advertisement/advertisement_provider.dart';
+import 'package:test_app/widgets/shared/snackbar.dart';
 
 class HomeScreen extends StatefulWidget {
 
@@ -18,14 +20,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_){
-      context.read<AdvertisementProvider>().getAdvertisement(1);
+      context.read<AdvertisementProvider>().getAdvertisement();
     });
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
+
+    final advertisementProvider = context.watch<AdvertisementProvider>();
+
+    advertisementProvider.onErrorCallback = (message){
+      if(message.isEmpty)return;
+      BasicSnackBar().showSnackBar(context, message, Colors.red, Icons.close);
+    };
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -35,9 +44,102 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: const Column(
+      body: advertisementProvider.isLoading 
+      ? const Center(
+          child: CircularProgressIndicator(),
+        ) 
+      : Column(
         children: [
-          _TypeAdvertisements()
+          const _TypeAdvertisements(),
+          const _SearchBar(),
+          advertisementProvider.advertisementData.isEmpty 
+          ? const _EmptyState() 
+          : Expanded(
+            child: _AdvertisementList(
+              data: advertisementProvider.advertisementData,
+              controller: advertisementProvider.scrollController,
+            )
+          ),
+          advertisementProvider.isLoadingPage
+          ? const SizedBox(
+            height: 50,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          )
+          : const SizedBox(),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 120,
+      child: Placeholder(),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 120,
+      child: Placeholder(),
+    );
+  }
+}
+
+class _AdvertisementList extends StatelessWidget {
+
+  final List<AdvertisementsEntity> data;
+  final ScrollController controller;
+
+  const _AdvertisementList({
+    required this.data,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      controller: controller,
+      shrinkWrap: true,
+      itemCount: data.length,
+      itemBuilder: (context, index) {
+        final item = data[index];
+
+        return _AdvertisementItem(
+          data: item
+        );
+      },
+    );
+  }
+}
+
+class _AdvertisementItem extends StatelessWidget {
+
+  final AdvertisementsEntity data;
+
+  const _AdvertisementItem({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      child: Column(
+        children: [
+          Text(data.title),
+          Text(data.price.toString()),
+          Text('${data.description.substring(0, 14)}...')
         ],
       ),
     );
