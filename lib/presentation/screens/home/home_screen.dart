@@ -26,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_){
       context.read<AdvertisementProvider>().getAdvertisement();
       context.read<AdvertisementProvider>().initScrollController();
+      
     });
     super.initState();
   }
@@ -154,13 +155,10 @@ class _AdvertisementItem extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Hero(
-                  tag: data.id,
-                  child: SizedBox(
-                    width: 100,
-                    height: 80,
-                    child: Image.asset(data.imageUrl),
-                  ),
+                SizedBox(
+                  width: 100,
+                  height: 80,
+                  child: Image.asset(data.imageUrl),
                 ),
                 const SizedBox(width: 20,),
                 Flexible(
