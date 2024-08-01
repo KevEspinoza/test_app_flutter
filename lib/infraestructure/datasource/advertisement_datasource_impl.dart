@@ -8,7 +8,7 @@ class AdvertisementDataSourceImpl extends AdvertisementDataSource{
   
   @override
   Future<List<AdvertisementsEntity>> getAdvertisement(int page) async{
-    final response = await Utils.getDio().get('advertisement');
+    final response = await Utils.getDio().get('advertisements');
 
     final advertisementResponse = advertisementsResponseFromJson(response.data.toString());
 

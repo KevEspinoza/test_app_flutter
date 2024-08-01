@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,8 @@ void main() async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+   final token = await FirebaseMessaging.instance.getToken();
+  print(token);
   await Environment.initEnvironment();
   SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -28,7 +31,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider(create: (_) => AdvertisementProvider()),
+        ChangeNotifierProvider(create: (_) => AdvertisementProvider()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,

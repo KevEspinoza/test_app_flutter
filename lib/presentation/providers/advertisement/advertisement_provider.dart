@@ -18,6 +18,7 @@ class AdvertisementProvider extends ChangeNotifier{
 
   bool get isLoading => _isLoading;
   bool get isLoadingPage => _isLoadingPage;
+  AdvertisementType? get typeSelected => _typeSelected;
   List<AdvertisementsEntity> get advertisementData{
     if(_typeSelected == null) return _advertisementData;
 
@@ -28,27 +29,35 @@ class AdvertisementProvider extends ChangeNotifier{
     return _advertisementData.where((e)=> e.id == id).first;
   }
 
-  void setLoading( bool isLoading ){
-    _isLoading = true;
+  void setLoading( bool loading ){
+    _isLoading = loading;
     notifyListeners();
   }
 
   void setTypeSelected( AdvertisementType type){
+    if(type == _typeSelected){
+      _typeSelected = null;
+      notifyListeners();
+      return;
+    } 
+
     _typeSelected = type;
+    notifyListeners();
   }
 
-  void setLoadingPage( bool isLoading ){
-    _isLoadingPage = true;
+  void setLoadingPage( bool loading ){
+    _isLoadingPage = loading;
     notifyListeners();
   }
 
   void initScrollController(){
     scrollController.addListener((){
-      if((scrollController.position.pixels + 400) >= scrollController.position.maxScrollExtent){
+      if((scrollController.position.pixels) >= scrollController.position.maxScrollExtent){
         getAdvertisement();
       }
     });
   }
+  
 
   Future<void> getAdvertisement() async{
     try{
@@ -65,19 +74,28 @@ class AdvertisementProvider extends ChangeNotifier{
 
       final response = await _repository.getAdvertisement(_currentPage);
 
-      _advertisementData = [..._advertisementData, ...response.sublist(start, end)];
+      if(response.length >= end){
+        _advertisementData = [..._advertisementData, ...response.sublist(start, end)];
+      }
+      
       notifyListeners();
-
-      _currentPage +=1;
 
       if(_currentPage != 0) {
         setLoadingPage(false);
       } else {
         setLoading(false);
       }
+      
+      _currentPage +=1;
 
     }on DioException{
       onErrorCallback?.call('Ocurrio un error inesperado, intenta nuevamente.');
+      
+      if(_currentPage != 0) {
+        setLoadingPage(false);
+      } else {
+        setLoading(false);
+      }
     }
   }
 

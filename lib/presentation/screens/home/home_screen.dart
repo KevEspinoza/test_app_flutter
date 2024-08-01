@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:test_app/config/constants/utils.dart';
 import 'package:test_app/domain/entities/advertisements_entity.dart';
+import 'package:test_app/infraestructure/mappers/advertisement_mapper.dart';
 import 'package:test_app/presentation/providers/advertisement/advertisement_provider.dart';
+import 'package:test_app/presentation/screens/detail/detail_screen.dart';
 import 'package:test_app/widgets/shared/snackbar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_){
       context.read<AdvertisementProvider>().getAdvertisement();
+      context.read<AdvertisementProvider>().initScrollController();
     });
     super.initState();
   }
@@ -36,7 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
     };
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.white,
+        backgroundColor: Colors.white,
         title: const Text(
           'Buscador Anuncio',
           style: TextStyle(
@@ -50,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ) 
       : Column(
         children: [
-          const _TypeAdvertisements(),
+          _TypeAdvertisements(advertisementProvider: advertisementProvider),
           const _SearchBar(),
           advertisementProvider.advertisementData.isEmpty 
           ? const _EmptyState() 
@@ -91,10 +99,7 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 120,
-      child: Placeholder(),
-    );
+    return const SizedBox();
   }
 }
 
@@ -133,66 +138,154 @@ class _AdvertisementItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Column(
-        children: [
-          Text(data.title),
-          Text(data.price.toString()),
-          Text('${data.description.substring(0, 14)}...')
-        ],
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: GestureDetector(
+        onTap: () {
+          context.push(DetailScreen.path, extra: {
+            "item": data
+          });
+        },
+        child: Card(
+          surfaceTintColor: Colors.white,
+          color: Colors.white,
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Hero(
+                  tag: data.id,
+                  child: SizedBox(
+                    width: 100,
+                    height: 80,
+                    child: Image.asset(data.imageUrl),
+                  ),
+                ),
+                const SizedBox(width: 20,),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(data.title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),),
+                          const Spacer(),
+                          Text(Utils.intToPrice(data.price))
+                        ],
+                      ),
+                      const SizedBox(height: 8,),
+                      Text(data.description, maxLines: 2, style: const TextStyle(overflow: TextOverflow.ellipsis),)
+                    ],
+                  ),
+                )
+              ],
+            ),
+          )
+        ),
       ),
     );
   }
 }
 
 class _TypeAdvertisements extends StatelessWidget {
+  
+  final AdvertisementProvider advertisementProvider;
 
-  const _TypeAdvertisements();
+  const _TypeAdvertisements({
+    required this.advertisementProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
 
-    final noSelectedDecoration = BoxDecoration(
-      border: Border.all(color: Colors.black)
-    );
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       child: SizedBox(
         child: Row(
           children: [
             Expanded(
-              child: Container(
-                decoration: noSelectedDecoration,
+              child: SizedBox(
                 height: 48,
-                child: const Center(
-                  child: Text(
-                    'Laptops'
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: advertisementProvider.typeSelected == null 
+                    ? null 
+                    : advertisementProvider.typeSelected! == AdvertisementType.phones
+                    ? const WidgetStatePropertyAll(Colors.blue) 
+                    : null
                   ),
-                ),
+                  onPressed: (){
+                    advertisementProvider.setTypeSelected(AdvertisementType.phones);
+                  }, 
+                  child: Center(
+                    child: Text(
+                      'Telefonos',
+                      style: TextStyle(color: advertisementProvider.typeSelected == null 
+                      ? Colors.black 
+                      : advertisementProvider.typeSelected! == AdvertisementType.phones 
+                      ? Colors.white 
+                      : Colors.black),
+                    ),
+                  ),
+                )
               ),
             ),
+            const SizedBox(width: 8,),
             Expanded(
-              child: Container(
-                decoration: noSelectedDecoration,
+              child: SizedBox(
                 height: 48,
-                child: const Center(
-                  child: Text(
-                    'Telefonos'
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: advertisementProvider.typeSelected == null 
+                    ? null 
+                    : advertisementProvider.typeSelected! == AdvertisementType.laptops 
+                    ? const WidgetStatePropertyAll(Colors.blue) 
+                    : null
                   ),
-                ),
+                  onPressed: (){
+                    advertisementProvider.setTypeSelected(AdvertisementType.laptops);
+                  }, 
+                  child: Center(
+                    child: Text(
+                      'Laptops',
+                      style: TextStyle(color: advertisementProvider.typeSelected == null 
+                      ? Colors.black 
+                      : advertisementProvider.typeSelected! == AdvertisementType.laptops 
+                      ? Colors.white 
+                      : Colors.black),
+                    ),
+                  ),
+                )
               ),
             ),
+            const SizedBox(width: 8,),
             Expanded(
-              child: Container(
-                decoration: noSelectedDecoration,
+              child: SizedBox(
                 height: 48,
-                child: const Center(
-                  child: Text(
-                    'Relojes'
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: advertisementProvider.typeSelected == null 
+                    ? null 
+                    : advertisementProvider.typeSelected! == AdvertisementType.smartWatchs 
+                    ? const WidgetStatePropertyAll(Colors.blue) 
+                    : null
                   ),
-                ),
+                  onPressed: (){
+                    advertisementProvider.setTypeSelected(AdvertisementType.smartWatchs);
+                  }, 
+                  child: Center(
+                    child: Text(
+                      'Smart Watch\'s',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: advertisementProvider.typeSelected == null 
+                      ? Colors.black 
+                      : advertisementProvider.typeSelected! == AdvertisementType.smartWatchs 
+                      ? Colors.white 
+                      : Colors.black),
+                    ),
+                  ),
+                )
               ),
             ),
           ],

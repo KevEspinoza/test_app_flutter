@@ -12,7 +12,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: DetailScreen.path,
       name: DetailScreen.name,
-      builder: (context, state) =>  const DetailScreen(),
+      builder: (context, state){
+        final data = state.extra as Map<String, dynamic>;
+
+        return DetailScreen(data: data["item"],);
+      },
     ),
     GoRoute(
       path: SellerDetailScreen.path,
